@@ -13,7 +13,7 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    networks: [backend_net]
+    networks: [tasca_net]
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
       interval: 10s
@@ -28,7 +28,7 @@ services:
         condition: service_healthy
     ports:
       - "8081:8080"
-    networks: [backend_net]
+    networks: [tasca_net]
 
   api:
     container_name: bar_tasca_api
@@ -53,11 +53,24 @@ services:
       mysql:
         condition: service_healthy
     ports:
-      - "8080:8080"
-    networks: [backend_net]
+      - "5000:5000"
+      - "5001:5001"
+    networks: [tasca_net]
+
+  front:
+    build:
+      context: ../TascaFront
+      dockerfile: Dockerfile
+    container_name: tasca_front
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - tasca_net
 
 networks:
-  backend_net:
+  tasca_net:
 
 volumes:
   mysql_data:
