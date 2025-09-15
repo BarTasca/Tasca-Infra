@@ -1,8 +1,76 @@
 version: "3.9"
 
 services:
-  api:
+  mysql:
+    image: mysql:8.0
+    container_name: bar_tasca_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
     volumes:
-      - ../BarTascaBackend:/src
-    working_dir: /src/BarTascaBackend
-    command: ["dotnet", "watch", "run", "--no-launch-profile", "--urls", "http://0.0.0.0:8080"]
+      - mysql_data:/var/lib/mysql
+    networks: [tasca_net]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer
+    container_name: bar_tasca_adminer
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    networks: [tasca_net]
+
+  api:
+    container_name: bar_tasca_api
+    build:
+      context: ../BarTascaBackend
+      dockerfile: BarTascaBackend/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TWILIO_SID: ${TWILIO_SID}
+      TWILIO_TOKEN: ${TWILIO_TOKEN}
+      TWILIO_FROM: ${TWILIO_FROM}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    networks: [tasca_net]
+
+  front:
+    build:
+      context: ../TascaFront
+      dockerfile: Dockerfile
+    container_name: tasca_front
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - tasca_net
+
+networks:
+  tasca_net:
+
+volumes:
+  mysql_data:
