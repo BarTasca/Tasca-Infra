@@ -37,6 +37,7 @@ services:
       dockerfile: BarTascaBackend/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:5000;https://+:5001"
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_DB: ${MYSQL_DB}
@@ -49,6 +50,12 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER}
       JWT_AUDIENCE: ${JWT_AUDIENCE}
+      Qr__Secret: ${Qr__Secret}
+      Qr__RotationMinutes: ${Qr__RotationMinutes}
+      WEBPUSH_VAPID_PUBLIC_KEY: ${WEBPUSH_VAPID_PUBLIC_KEY}
+      WEBPUSH_VAPID_PRIVATE_KEY: ${WEBPUSH_VAPID_PRIVATE_KEY}
+      WEBPUSH_SUBJECT: ${WEBPUSH_SUBJECT}
+      PUBLIC_APP_BASE_URL: ${PUBLIC_APP_BASE_URL}
     depends_on:
       mysql:
         condition: service_healthy
