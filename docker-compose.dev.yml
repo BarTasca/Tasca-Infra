@@ -37,7 +37,7 @@ services:
       dockerfile: BarTascaBackend/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: "http://+:5000;https://+:5001"
+      ASPNETCORE_URLS: "http://+:5000"
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_DB: ${MYSQL_DB}
@@ -72,6 +72,12 @@ services:
     build:
       context: ../TascaFront
       dockerfile: Dockerfile
+      args:
+        VITE_MODE: development
+        VITE_API_BASE_URL: http://localhost:5000
+        VITE_SIGNALR_HUB_TICKETS: http://localhost:5000/hubs/queue
+        VITE_SIGNALR_TICKET_EVENTS: ticketCreated,ticketUpdated
+        VITE_SIGNALR_HUB_PUBLIC: http://localhost:5000/hubs/public-queue
     container_name: tasca_front
     ports:
       - "5173:80"
